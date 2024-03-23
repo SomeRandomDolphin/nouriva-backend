@@ -5,6 +5,6 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=mabacup2023
+      - POSTGRES_DB=nouriva-backend
     ports:
       - 5432:5432

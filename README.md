@@ -1,4 +1,4 @@
-# Mabacup 2023 Backend
+# Nouriva Backend
 
 ## Prerequisite
 1. [Typescript](https://www.typescriptlang.org/download)
@@ -8,7 +8,7 @@
 ## Quick Start
 Clone the repo:
 ```bash
-git clone https://github.com/mabacupits2023/mabacup2023-backend.git
+git clone https://github.com/SomeRandomDolphin/nouriva-backend.git
 ```
 
 Install the dependencies:
