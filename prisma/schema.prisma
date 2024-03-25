@@ -7,97 +7,115 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id                        Int                   @id @default(autoincrement())
+  username                  String                @unique 
+  email                     String                @unique 
+  password                  String  
+  createdAt                 DateTime              @default(now()) @map("created_at")
+  updatedAt                 DateTime?             @updatedAt @map("updated_at")
+  deletedAt                 DateTime?             @map("deleted_at")
+
+  // references (prisma level only)
+  userToParent              Parent?               @relation("ReferUserToParent")
+
+  @@map("Users")
+}
+
 model Parent {
-  id           Int       @id @default(autoincrement())
-  name         String    
-  birthDate    DateTime  @map("birth_date")
-  phoneNumber  String    @map("phone_number")
-  reminder     Boolean   
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  deletedAt    DateTime? @map("deleted_at")
-  children     Child[]
-  users        User[]
+  id                        Int                   @id @default(autoincrement())
+  name                      String    
+  birthDate                 DateTime              @map("birth_date")
+  phoneNumber               String                @map("phone_number")
+  reminder                  Boolean  
+  userId                    Int                   @unique  @map("user_id") 
+  createdAt                 DateTime              @default(now()) @map("created_at")
+  updatedAt                 DateTime?             @updatedAt @map("updated_at")
+  deletedAt                 DateTime?             @map("deleted_at")
+
+  // references (prisma level only)
+  parentToChild             Child[]               @relation("ReferParentToChild")
+
+  // relational fields
+  parentFromUser            User                  @relation("ReferUserToParent", fields: [userId], references: [id])
 
   @@map("Parents")
 }
 
 model Child {
-  id         Int       @id @default(autoincrement())
-  name       String    
-  birthDate  DateTime  @map("birth_date")
-  height     Int   
-  weight     Int   
-  parentId   Int       @map("parent_id")
-  parent     Parent    @relation(fields: [parentId], references: [id])
-  childFoods ChildFood[]
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
-  deletedAt  DateTime? @map("deleted_at")
+  id                        Int                   @id @default(autoincrement())
+  name                      String    
+  birthDate                 DateTime              @map("birth_date")
+  height                    Int   
+  weight                    Int   
+  parentId                  Int                   @map("parent_id")
+  createdAt                 DateTime              @default(now()) @map("created_at")
+  updatedAt                 DateTime?             @updatedAt @map("updated_at")
+  deletedAt                 DateTime?             @map("deleted_at")
+
+  // references (prisma level only)
+  childToChildFood          ChildFood[]           @relation("ReferChildToChildFood")
+
+  // relational fields
+  childFromParent           Parent                @relation("ReferParentToChild", fields: [parentId], references: [id])
 
   @@map("Childs")
 }
 
-model DailyFood {
-  id           Int     @id @default(autoincrement())
-  water        Int   
-  energy       Int   
-  carbohydrate Int   
-  protein      Int   
-  fat          Int   
-  fibre        Int   
-  minAge       Int     @map("min_age")
-  maxAge       Int     @map("max_age")
+model FoodType {
+  id                        Int                   @id @default(autoincrement())
+  name                      String  
 
-  @@map("DailyFoods")
-}
+  // references (prisma level only)
+  foodTypeToFood            Food[]                @relation("ReferFoodTypeToFood")
 
-model ChildFood {
-  id       Int      @id @default(autoincrement())
-  mealTime DateTime @map("meal_time")
-  amount   Int   
-  foodId   Int      @map("food_id")
-  food     Food     @relation(fields: [foodId], references: [id])
-  childId  Int      @map("child_id")
-  child    Child    @relation(fields: [childId], references: [id])
-
-  @@map("ChildFoods")
+  @@map("FoodTypes")
 }
 
 model Food {
-  id           Int       @id @default(autoincrement())
-  name         String    
-  water        Int   
-  energy       Int   
-  carbohydrate Int   
-  protein      Int   
-  fat          Int   
-  fibre        Int   
-  foodTypeId   Int       @map("food_type_id")
-  foodType     FoodType  @relation(fields: [foodTypeId], references: [id])
-  childFoods   ChildFood[]
+  id                        Int                   @id @default(autoincrement())
+  name                      String    
+  water                     Int   
+  energy                    Int   
+  carbohydrate              Int   
+  protein                   Int   
+  fat                       Int   
+  fibre                     Int   
+  foodTypeId                Int                   @map("food_type_id")
+
+  // references (prisma level only)
+  foodToChildFood           ChildFood[]           @relation("ReferFoodToChildFood")
+
+  // relational fields
+  foodFromFoodType          FoodType              @relation("ReferFoodTypeToFood", fields: [foodTypeId], references: [id])
 
   @@map("Foods")
 }
 
-model User {
-  id        Int     @id @default(autoincrement())
-  username  String  @unique 
-  email     String  @unique 
-  password  String  
-  parentId  Int     @map("parent_id")
-  parent    Parent  @relation(fields: [parentId], references: [id])
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+model ChildFood {
+  id                        Int                   @id @default(autoincrement())
+  mealTime                  DateTime              @map("meal_time")
+  amount                    Int   
+  foodId                    Int                   @map("food_id")
+  childId                   Int                   @map("child_id")
 
-  @@map("Users")
+  // relational fields
+  childFoodFromFood         Food                  @relation("ReferFoodToChildFood", fields: [foodId], references: [id])
+  childFoodFromChild        Child                 @relation("ReferChildToChildFood", fields: [childId], references: [id])
+
+  @@map("ChildFoods")
 }
 
-model FoodType {
-  id    Int     @id @default(autoincrement())
-  name  String  
-  foods Food[]
+model DailyFood {
+  id                        Int                   @id @default(autoincrement())
+  water                     Int   
+  energy                    Int   
+  carbohydrate              Int   
+  protein                   Int   
+  fat                       Int   
+  fibre                     Int   
+  minAge                    Int                   @map("min_age")
+  maxAge                    Int                   @map("max_age")
 
-  @@map("FoodTypes")
+  @@map("DailyFoods")
 }
