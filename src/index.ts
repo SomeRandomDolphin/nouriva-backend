@@ -14,6 +14,19 @@ app.use(cors());
 app.use(express.json());
 app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 
+app.use((req, res, next) => {
+  const path = req.path;
+  res.on("finish", () => {
+    console.log({
+      method: req.method,
+      path: path,
+      ip: req.ip,
+      statusCode: res.statusCode,
+    });
+  });
+  next();
+});
+
 app.use("/api/auth", authRouter);
 app.use("/api/parents", parentRouter);
 
