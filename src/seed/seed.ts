@@ -1,24 +1,33 @@
 import db from "../config/connectDb";
-import { users } from "./UserSeed";
+import child from "./ChildSeed";
+import { parents } from "./ParentSeed";
 
 async function seedUsers() {
-  users.forEach(async (user) => {
-    await db.user.upsert({
-      where: {
-        id: user.id,
-      },
-      update: {
-        id: user.id,
+  parents.forEach(async (user) => {
+    const { id, name } = await db.parent.create({
+      data: {
+        name: user.name,
         username: user.username,
+        reminder: user.reminder,
         email: user.email,
         password: user.password,
+        phoneNumber: user.phoneNum,
       },
-      create: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        password: user.password,
-      },
+    });
+
+    console.log(`success insert/update parent ${name}`);
+
+    child(id).forEach(async (c) => {
+      await db.child.create({
+        data: {
+          name: c.name,
+          height: c.height,
+          weight: c.weight,
+          birthDate: c.birthdate,
+          parentId: c.parent_id,
+        },
+      });
+      console.log(`success insert child ${c.name}`);
     });
   });
 }

@@ -23,8 +23,8 @@
     "push:dev": "dotenv -e .env -- npx prisma db push",
     "pull:prod": "dotenv -e .env.production -- npx prisma db pull",
     "pull:dev": "dotenv -e .env -- npx prisma db pull",
-    "seed:prod": "dotenv -e .env.production -- ts-node prisma/seed.ts",
-    "seed:dev": "dotenv -e .env -- ts-node prisma/seed.ts",
+    "seed:prod": "dotenv -e .env.production -- ts-node src/seed/seed.ts",
+    "seed:dev": "dotenv -e .env -- ts-node src/seed/seed.ts",
     "query": "ts-node src/query.ts"
   },
   "lint-staged": {
@@ -55,6 +55,7 @@
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
     "@prisma/client": "^5.1.1",
+    "@types/bcrypt": "^5.0.2",
     "bcrypt": "^5.1.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",

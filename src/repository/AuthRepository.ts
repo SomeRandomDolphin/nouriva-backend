@@ -1,23 +1,23 @@
 import db from "../config/connectDb";
 
-export const queryUserById = async (userId: number) => {
-  return await db.user.findUnique({
+export const queryParentById = async (parentId: number) => {
+  return await db.parent.findUnique({
     where: {
-      id: userId,
+      id: parentId,
     },
   });
 };
 
-export const queryUserByEmail = async (email: string) => {
-  return await db.user.findFirst({
+export const queryParentByEmail = async (email: string) => {
+  return await db.parent.findFirst({
     where: {
       email: email,
     },
   });
 };
 
-export const queryUserByUsername = async (username: string) => {
-  return await db.user.findFirst({
+export const queryParentByUsername = async (username: string) => {
+  return await db.parent.findFirst({
     where: {
       username: username,
     },

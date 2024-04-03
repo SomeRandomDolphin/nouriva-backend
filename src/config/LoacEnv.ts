@@ -10,6 +10,7 @@ const env = cleanEnv(
     DATABASE_URL: url(),
     PORT: num(),
     SECRET_ACCESS_TOKEN: str(),
+    ROUNDS_SALT: num(),
     HASH_SALT: str(),
   },
   {

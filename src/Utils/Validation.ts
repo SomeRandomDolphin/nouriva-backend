@@ -5,8 +5,11 @@ export const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
-export const userSchema = Joi.object({
+export const parentSchema = Joi.object({
   username: Joi.string().required(),
+  name: Joi.string().required(),
+  reminder: Joi.boolean().required().default(true),
+  phoneNumber: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().required(),
 });

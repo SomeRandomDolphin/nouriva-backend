@@ -5,7 +5,7 @@ import favicon from "serve-favicon";
 import path from "path";
 
 import authRouter from "./router/AuthRouter";
-import userRouter from "./router/UserRouter";
+import parentRouter from "./router/ParentRouter";
 
 const app: Express = express();
 const PORT = env.PORT || 80;
@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 
 app.use("/api/auth", authRouter);
-app.use("/api/users", userRouter);
+app.use("/api/parents", parentRouter);
 
 app.get("/api", (_: Request, res: Response) => {
   res.send("Nouriva API!");
