@@ -1,27 +1,23 @@
 import { Router } from "express";
+import {
+  deleteChild,
+  registerChild,
+  retriveChildDetail,
+  retriveParentChilds,
+  updateChild,
+} from "../controller/ChildController";
+import { userAuthMiddleware } from "../middleware/AuthMiddleware";
 
-export default function childRoute(): Router {
-  const route = Router();
-  route.get("/childs", (req, res) => res.send("Childs route"));
-  route.get("/childs/:child_id", (req, res) =>
-    res.send(`Childs route with id ${req.params.child_id}`),
-  );
+const childRouter = Router();
 
-  route.post("/childs", (req, res) => {
-    res.send("Childs route");
-  });
+childRouter.get("/", userAuthMiddleware, retriveParentChilds);
 
-  route.put("/childs/:child_id", (req, res) => {
-    res.send(`Childs route with id ${req.params.child_id}`);
-  });
+childRouter.get("/:child_id", userAuthMiddleware, retriveChildDetail);
 
-  route.patch("/childs/:child_id", (req, res) => {
-    res.send(`Childs route with id ${req.params.child_id}`);
-  });
+childRouter.post("/register", userAuthMiddleware, registerChild);
 
-  route.delete("/childs/:child_id", (req, res) => {
-    res.send(`Childs route with id ${req.params.child_id}`);
-  });
+childRouter.put("/:child_id", userAuthMiddleware, updateChild);
 
-  return route;
-}
+childRouter.delete("/:child_id", userAuthMiddleware, deleteChild);
+
+export default childRouter;

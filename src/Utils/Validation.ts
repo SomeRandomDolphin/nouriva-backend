@@ -25,3 +25,10 @@ export const updateIntakeSchema = Joi.object({
   mealTime: Joi.date().required(),
   amount: Joi.number().required(),
 });
+
+export const childSchema = Joi.object({
+  name: Joi.string().required(),
+  birthDate: Joi.date().required(),
+  height: Joi.number().required(),
+  weight: Joi.number().required(),
+});
