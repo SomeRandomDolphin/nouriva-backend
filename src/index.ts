@@ -6,6 +6,7 @@ import path from "path";
 
 import authRouter from "./router/AuthRouter";
 import parentRouter from "./router/ParentRouter";
+import childRouter from "./router/ChildRouter";
 
 const app: Express = express();
 const PORT = env.PORT || 80;
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/parents", parentRouter);
+app.use("/api/childs", childRouter);
 
 app.get("/api", (_: Request, res: Response) => {
   res.send("Nouriva API!");
