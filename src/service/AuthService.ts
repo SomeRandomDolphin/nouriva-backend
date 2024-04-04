@@ -2,14 +2,14 @@ import { StatusCodes } from "http-status-codes";
 import { CustomError } from "../Utils/ErrorHandling";
 import { LoginRequest } from "../model/AuthModel";
 import {
-  queryUserByEmail,
-  queryUserByUsername,
+  queryParentByEmail,
+  queryParentByUsername,
 } from "../repository/AuthRepository";
 import { generateAccessToken } from "../Utils/JWT-Token";
 import bcrypt from "bcrypt";
 
 export const loginUser = async (data: LoginRequest) => {
-  const user = await queryUserByEmail(data.email);
+  const user = await queryParentByEmail(data.email);
   if (!user) {
     throw new CustomError(StatusCodes.BAD_REQUEST, "Invalid Credential");
   }
@@ -29,7 +29,7 @@ export const loginUser = async (data: LoginRequest) => {
 };
 
 export const userProfile = async (userUsername: string) => {
-  const user = await queryUserByUsername(userUsername);
+  const user = await queryParentByUsername(userUsername);
 
   if (!user) {
     throw new CustomError(StatusCodes.NOT_FOUND, "Invalid User");
