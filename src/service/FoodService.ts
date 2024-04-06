@@ -1,9 +1,8 @@
-import { StatusCodes } from "http-status-codes";
 import {
   queryFoodDetailbyID,
   queryFoodDetailAll,
+  queryFoodWithFoodType,
 } from "../repository/FoodRepository";
-import { CustomError } from "../Utils/ErrorHandling";
 
 export const retrieveFoodbyID = async (data: number) => {
   const Food = await queryFoodDetailbyID(data);
@@ -13,4 +12,9 @@ export const retrieveFoodbyID = async (data: number) => {
 export const retrieveFoodAll = async () => {
   const Food = await queryFoodDetailAll();
   return Food;
+};
+
+export const retrieveFoodWithFoodType = async (data: number) => {
+  const FoodType = await queryFoodWithFoodType(data);
+  return FoodType;
 };
