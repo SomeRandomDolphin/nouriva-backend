@@ -13,3 +13,22 @@ export const parentSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
 });
+
+export const intakeSchema = Joi.object({
+  childId: Joi.number().required(),
+  foodId: Joi.number().required(),
+  mealTime: Joi.date().required(),
+  amount: Joi.number().required(),
+});
+
+export const updateIntakeSchema = Joi.object({
+  mealTime: Joi.date().required(),
+  amount: Joi.number().required(),
+});
+
+export const childSchema = Joi.object({
+  name: Joi.string().required(),
+  birthDate: Joi.date().required(),
+  height: Joi.number().required(),
+  weight: Joi.number().required(),
+});
