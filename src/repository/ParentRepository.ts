@@ -60,6 +60,19 @@ export const queryParentDetailbyID = async (idInput: number) => {
   return data;
 };
 
+export const queryParentDeletedAt = async (idInput: number) => {
+  const data = await db.parent.findUnique({
+    where: {
+      id: idInput,
+    },
+    select: {
+      deletedAt: true,
+    },
+  });
+  if (!data) throw new CustomError(404, "Parent not found");
+  return data;
+};
+
 export const queryParentDetailbyUsername = async (usernameInput: string) => {
   const data = await db.parent.findFirst({
     where: {
@@ -108,6 +121,7 @@ export const editParent = async (parentId: number, data: ParentRequest) => {
     const parent = await db.parent.update({
       where: {
         id: parentId,
+        deletedAt: null,
       },
       data: {
         name: data.name,
@@ -120,12 +134,15 @@ export const editParent = async (parentId: number, data: ParentRequest) => {
           : undefined,
       },
     });
-    if (!parent) throw new CustomError(400, "Invalid Data");
+
+    delete parent.password;
     return parent;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code == "P2002") {
         throw new CustomError(400, "Email Or Username already exist");
+      } else if (error.code == "P2025") {
+        throw new CustomError(404, "Parent not found");
       }
     }
     throw error;

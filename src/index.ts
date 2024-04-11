@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express, NextFunction, Request, Response } from "express";
 import cors from "cors";
 import env from "./config/LoacEnv";
 import favicon from "serve-favicon";
@@ -33,7 +33,7 @@ app.use((req, res, next) => {
 });
 
 // handling invalid JSON body
-app.use((err, req: Request, res: Response, next) => {
+app.use((err, req: Request, res: Response, next: NextFunction) => {
   if (err.status === 400) {
     res.status(400).json({ message: err.message, success: false });
     return;

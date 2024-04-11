@@ -7,7 +7,7 @@ import { StatusCodes } from "http-status-codes";
 import * as AuthService from "../service/AuthService";
 import { UserToken } from "../middleware/AuthMiddleware";
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginParent = async (req: Request, res: Response) => {
   const {
     error,
     value,
@@ -22,18 +22,18 @@ export const loginUser = async (req: Request, res: Response) => {
   }
 
   try {
-    const tokens = await AuthService.loginUser(value);
+    const tokens = await AuthService.loginParent(value);
     responseData(res, StatusCodes.OK, "Login Successful", tokens);
   } catch (err) {
     responseError(res, err);
   }
 };
 
-export const getUserProfile = async (req: Request, res: Response) => {
-  const { username } = (req as UserToken).user;
+export const getParentProfile = async (req: Request, res: Response) => {
+  const { id } = (req as UserToken).user;
 
   try {
-    const data = await AuthService.userProfile(username);
+    const data = await AuthService.ParentProfile(id);
     responseData(res, StatusCodes.OK, "Profile Retrieved Successfully", data);
   } catch (err) {
     responseError(res, err);

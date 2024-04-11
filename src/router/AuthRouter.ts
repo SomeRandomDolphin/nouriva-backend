@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { loginUser, getUserProfile } from "../controller/AuthController";
 import { userAuthMiddleware } from "../middleware/AuthMiddleware";
+import { loginParent, getParentProfile } from "../controller/AuthController";
 
 const authRouter = Router();
 
-authRouter.post("/login", loginUser);
-authRouter.get("/me", userAuthMiddleware, getUserProfile);
+authRouter.post("/login", loginParent);
+authRouter.get("/me", userAuthMiddleware, getParentProfile);
 
 export default authRouter;

@@ -11,7 +11,6 @@ export interface UserToken extends Request {
 
 interface TokenData {
   id: number;
-  username: string;
   email: string;
   password: string;
 }
