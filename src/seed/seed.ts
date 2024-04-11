@@ -15,7 +15,7 @@ async function seedParentChild() {
   parents.forEach(async (user) => {
     const parent = await db.parent.findFirst({
       where: {
-        username: user.username,
+        email: user.email,
       },
     });
 
@@ -26,7 +26,6 @@ async function seedParentChild() {
       const data = await db.parent.create({
         data: {
           name: user.name,
-          username: user.username,
           reminder: user.reminder,
           email: user.email,
           password: user.password,

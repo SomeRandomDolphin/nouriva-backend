@@ -5,7 +5,6 @@ const genSalt = bcrypt.genSaltSync(env.ROUNDS_SALT);
 
 interface Parents {
   name: string;
-  username: string;
   email: string;
   phoneNum: string;
   reminder: boolean;
@@ -15,7 +14,6 @@ interface Parents {
 export const parents: Parents[] = [
   {
     name: "Gesang Gey",
-    username: "gesanggey",
     email: "gesanggey@gmail.com",
     phoneNum: "081231231231",
     password: bcrypt.hashSync("gesanggey", genSalt),
@@ -23,7 +21,6 @@ export const parents: Parents[] = [
   },
   {
     name: "Ivan Wibu",
-    username: "ivanwibu",
     email: "ivanwibu@gmail.com",
     phoneNum: "0822312212233",
     password: bcrypt.hashSync("ivanwibu", genSalt),
@@ -31,7 +28,6 @@ export const parents: Parents[] = [
   },
   {
     name: "Rio Gans",
-    username: "riogans",
     email: "riogans@gmail.com",
     phoneNum: "0812313323422",
     password: bcrypt.hashSync("riogans", genSalt),
