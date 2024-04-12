@@ -1,14 +1,12 @@
 import { CustomError } from "../Utils/ErrorHandling";
 import db from "../config/connectDb";
 import { RequestChild } from "../model/ChildModel";
-import { queryParentDetailbyUsername } from "./ParentRepository";
 
-export const queryChildsByParentUsername = async (parentUsername: string) => {
-  const { id } = await queryParentDetailbyUsername(parentUsername);
-
+export const queryChildsByParentId = async (id: number) => {
   const data = db.child.findMany({
     where: {
       parentId: id,
+      deletedAt: null,
     },
     select: {
       id: true,
@@ -47,8 +45,7 @@ export const queryChildDetailById = async (childId: number) => {
   return data;
 };
 
-export const createChildRepo = async (username: string, data: RequestChild) => {
-  const { id } = await queryParentDetailbyUsername(username);
+export const createChildRepo = async (id: number, data: RequestChild) => {
   return await db.child.create({
     data: {
       ...data,

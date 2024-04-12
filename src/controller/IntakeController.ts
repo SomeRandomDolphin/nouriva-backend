@@ -16,8 +16,8 @@ export const createIntake = async (req: Request, res: Response) => {
     return;
   }
   try {
-    const { username } = (req as UserToken).user;
-    const data = await IntakeService.createIntake(username, value);
+    const { id } = (req as UserToken).user;
+    const data = await IntakeService.createIntake(id, value);
     responseData(
       res,
       StatusCodes.CREATED,
@@ -31,9 +31,9 @@ export const createIntake = async (req: Request, res: Response) => {
 
 export const getIntakeByChild = async (req: Request, res: Response) => {
   try {
-    const { username } = (req as UserToken).user;
+    const { id } = (req as UserToken).user;
     const child_id = Number(req.params.child_id);
-    const data = await IntakeService.retriveChildFood(child_id, username);
+    const data = await IntakeService.retriveChildFood(child_id, id);
 
     responseData(res, StatusCodes.OK, "Child Food Retrive Successfully", data);
   } catch (error) {
@@ -51,9 +51,9 @@ export const updateIntakeChild = async (req: Request, res: Response) => {
   }
 
   try {
-    const { username } = (req as UserToken).user;
+    const { id } = (req as UserToken).user;
     const intake_id = Number(req.params.intake_id);
-    const data = await IntakeService.updateIntake(intake_id, username, value);
+    const data = await IntakeService.updateIntake(intake_id, id, value);
     responseData(res, StatusCodes.OK, "Child Food Successfully Updated", data);
   } catch (error) {
     responseError(res, error);
@@ -62,9 +62,9 @@ export const updateIntakeChild = async (req: Request, res: Response) => {
 
 export const delateIntakeChild = async (req: Request, res: Response) => {
   try {
-    const { username } = (req as UserToken).user;
+    const { id } = (req as UserToken).user;
     const intake_id = Number(req.params.intake_id);
-    const data = await IntakeService.deleteIntake(intake_id, username);
+    const data = await IntakeService.deleteIntake(intake_id, id);
     responseData(res, StatusCodes.OK, "Child Food Successfully Deleted", data);
   } catch (error) {
     responseError(res, error);
