@@ -6,7 +6,6 @@ export const loginSchema = Joi.object({
 });
 
 export const parentSchema = Joi.object({
-  username: Joi.string().required(),
   name: Joi.string().required(),
   reminder: Joi.boolean().required().default(true),
   phoneNumber: Joi.string().required(),

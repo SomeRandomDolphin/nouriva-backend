@@ -26,7 +26,6 @@ async function seedParentChild() {
       const data = await db.parent.create({
         data: {
           name: user.name,
-          username: user.username,
           reminder: user.reminder,
           email: user.email,
           password: user.password,

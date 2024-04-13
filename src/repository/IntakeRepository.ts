@@ -27,7 +27,7 @@ export const createIntake = async (intake: IntakeRequest) => {
 };
 
 export const queryIntakeChildId = async (idInput: number) => {
-  const data = await db.childFood.findFirst({
+  const data = await db.childFood.findMany({
     where: {
       childId: idInput,
     },
@@ -46,7 +46,7 @@ export const intakeValidation = async (parentId: number, intake_id: number) => {
   if (!intake)
     throw new CustomError(StatusCodes.NOT_FOUND, "Child Food not found");
 
-  const child = db.child.findFirst({
+  const child = await db.child.findFirst({
     where: {
       id: intake.childId,
       parentId: parentId,

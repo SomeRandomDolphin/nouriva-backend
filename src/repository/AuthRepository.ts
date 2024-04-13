@@ -15,11 +15,3 @@ export const queryParentByEmail = async (email: string) => {
     },
   });
 };
-
-export const queryParentByUsername = async (username: string) => {
-  return await db.parent.findFirst({
-    where: {
-      username: username,
-    },
-  });
-};

@@ -54,8 +54,8 @@ export const updateParent = async (req: Request, res: Response) => {
   }
 
   try {
-    const { username } = (req as UserToken).user;
-    const updatedUser = await ParentService.updateParent(username, value);
+    const { id } = (req as UserToken).user;
+    const updatedUser = await ParentService.updateParent(id, value);
     responseData(
       res,
       StatusCodes.OK,
@@ -69,8 +69,8 @@ export const updateParent = async (req: Request, res: Response) => {
 
 export const deleteParent = async (req: Request, res: Response) => {
   try {
-    const { username } = (req as UserToken).user;
-    const url = await ParentService.deleteParent(username);
+    const { id } = (req as UserToken).user;
+    const url = await ParentService.deleteParent(id);
     responseData(res, StatusCodes.OK, "Parent Deleted Successfully", url);
   } catch (err) {
     responseError(res, err);
