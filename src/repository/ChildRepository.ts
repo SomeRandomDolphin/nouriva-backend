@@ -28,7 +28,7 @@ export const queryCheckChildParent = async (
   parent_id: number,
   childId: number,
 ) => {
-  const data = db.child.findFirst({
+  const data = await db.child.findFirst({
     where: {
       parentId: parent_id,
       id: childId,

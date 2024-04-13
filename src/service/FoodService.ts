@@ -2,12 +2,14 @@ import {
   queryFoodDetailbyID,
   queryFoodDetailAll,
   queryFoodWithFoodType,
-  queryChildFoodToday,
   queryChildAge,
   queryAllNeededFood,
+  queryChildFoodByDay,
+  queryBirtDate,
 } from "../repository/FoodRepository";
-
+import { Food as FoodDB } from "@prisma/client";
 import * as Static from "../public/StaticData";
+import * as Model from "../model/FoodModel";
 import { queryCheckChildParent } from "../repository/ChildRepository";
 
 export const retrieveFoodbyID = async (data: number) => {
@@ -18,6 +20,55 @@ export const retrieveFoodbyID = async (data: number) => {
 export const retrieveFoodAll = async () => {
   const Food = await queryFoodDetailAll();
   return Food;
+};
+
+export const retrieveChildFoodStatisic = async (
+  parentId: number,
+  childId: number,
+  data: Model.StatReq,
+) => {
+  await queryCheckChildParent(parentId, childId);
+  const Stats = [];
+  const start = new Date(data.start);
+  const end = new Date(new Date(data.end.setHours(23, 59, 999)));
+
+  while (start <= end) {
+    // harus di check setiap iterasi karena bisa saja usia bulan berubah
+    const { birthDate } = await queryBirtDate(childId);
+    const childAge =
+      (start.getTime() - birthDate.getTime()) / 1000 / 86400 / 30;
+
+    const idealChildFoodDialy = Static.dailyFoods.find(
+      (df) => childAge >= df.minAge && childAge <= df.maxAge,
+    );
+
+    const foodDay = await queryChildFoodByDay(start, childId);
+    let childFoodToday = Model.newFoodStats();
+
+    for (const ft of foodDay) {
+      const food = await queryFoodDetailbyID(ft.foodId);
+      childFoodToday = countDialyFood(
+        { FoodDB: food, amount: ft.amount },
+        childFoodToday,
+      );
+    }
+
+    const childFoodPercentage = countPercentage(
+      childFoodToday,
+      idealChildFoodDialy,
+    );
+
+    const std = stdev(childFoodPercentage);
+
+    Stats.push({
+      date: new Date(start).toLocaleDateString(),
+      ...childFoodPercentage,
+      score: (100 / (100 + std)) * 100,
+    });
+
+    start.setDate(start.getDate() + 1);
+  }
+  return Stats;
 };
 
 export const retrieveFoodWithFoodType = async (data: number) => {
@@ -31,284 +82,175 @@ export const foodsRecommendation = async (
 ) => {
   await queryCheckChildParent(parentId, childId);
 
-  const foodsRecomendation: Static.Food[] = [];
+  // dapatkan makanna hari ini
+  const foodToday = await queryChildFoodByDay(new Date(), childId);
 
-  const foodToday = await queryChildFoodToday(childId);
-  let childFoodToday = Static.newChildDailyFoods();
+  let childFoodToday = Model.newFoodStats();
 
+  // cari ideal food dialy
   const childAge = await queryChildAge(childId);
   const idealChildFoodDialy = Static.dailyFoods.find(
     (df) => childAge >= df.minAge && childAge <= df.maxAge,
   );
 
-  foodToday.forEach(async (cf) => {
-    const food = await queryFoodDetailbyID(cf.foodId);
-    childFoodToday = countDialyFood(childFoodToday, food);
-  });
+  // hitung makanan yang udah di konsumsi hari ini
+  async function childFood() {
+    for (const ft of foodToday) {
+      const food = await queryFoodDetailbyID(ft.foodId);
+      childFoodToday = countDialyFood(
+        { FoodDB: food, amount: ft.amount },
+        childFoodToday,
+      );
+    }
+  }
+  await childFood();
 
-  const childFoodPercentage = countPercentage(
+  // cari persentase
+  let childFoodPercentage = countPercentage(
     childFoodToday,
     idealChildFoodDialy,
   );
 
+  // cari ideal food consumption agar terpenuhi
   const idealFoodCons = idealConsumption(
     idealChildFoodDialy,
     childFoodPercentage,
   );
 
-  let standartDeviation = standartDeviationPersentage(childFoodPercentage);
+  // standart deviasi
+  let std = stdev(childFoodPercentage);
 
-  const sortedKey = Object.keys(childFoodPercentage).sort((a, b) => {
-    return childFoodPercentage[a] - childFoodPercentage[b];
+  // makanan yang mungkin dari db
+  let PosibleFoods = await queryAllNeededFood(idealFoodCons);
+  PosibleFoods = PosibleFoods.filter((value, index, self) => {
+    return self.findIndex((t) => t.id === value.id) === index;
   });
 
-  /*
-   * Get all posible food to increase the percentage
-   * */
-  const PosibleFood = await queryAllNeededFood(sortedKey, idealFoodCons);
+  let FoodList: Model.FoodAmount[] = [];
 
-  PosibleFood.forEach((pf) => {
-    const newChildFoodDialy = countDialyFood(childFoodToday, pf);
-    const newChildFoodPercentage = countPercentage(
-      newChildFoodDialy,
-      idealChildFoodDialy,
-    );
+  const startStd = std;
+  let finalPersentage = childFoodPercentage;
 
-    const newStd = standartDeviationPersentage(newChildFoodPercentage);
+  // algoritma yang akan meneukan rekomendasi makanan terbaik
+  for (let i = 0; i < 20000; i++) {
+    const TempFoodList: Model.FoodAmount[] = [];
+    let tempStd = startStd;
+    const RandomFood = randomFoods(PosibleFoods);
+    let tempCFToday = childFoodToday;
+    while (RandomFood.length != 0) {
+      RandomFood.forEach((pf) => {
+        const newChildFoodDialy = countDialyFood(
+          { FoodDB: pf, amount: 1 },
+          tempCFToday,
+        );
+        const newChildFoodPercentage = countPercentage(
+          newChildFoodDialy,
+          idealChildFoodDialy,
+        );
+        const newStd = stdev(newChildFoodPercentage);
 
-    if (newStd <= standartDeviation) {
-      standartDeviation = newStd;
-      childFoodToday = newChildFoodDialy;
-      foodsRecomendation.push(pf);
+        if (newStd < tempStd && !Overflow(newChildFoodPercentage)) {
+          tempStd = newStd;
+          tempCFToday = newChildFoodDialy;
+          const existFood = TempFoodList.find((fl) => fl.FoodDB.id === pf.id);
+          if (existFood) {
+            existFood.amount += 1;
+          } else {
+            TempFoodList.push({ FoodDB: pf, amount: 1 });
+          }
+          childFoodPercentage = newChildFoodPercentage;
+        } else {
+          let index = 0;
+          while ((index = RandomFood.indexOf(pf)) !== -1) {
+            RandomFood.splice(index, 1);
+          }
+        }
+      });
     }
+    if (tempStd < std && !Underflow(childFoodPercentage)) {
+      std = tempStd;
+      FoodList = TempFoodList;
+      finalPersentage = childFoodPercentage;
+    }
+  }
+  const mapFood = FoodList.map((fl) => {
+    delete fl.FoodDB.id;
+    delete fl.FoodDB.foodTypeId;
+    return {
+      ...fl.FoodDB,
+      amount: fl.amount,
+    };
   });
+  return {
+    percentage: finalPersentage,
+    score: (100 / (100 + std)) * 100,
+    foodList: mapFood,
+  };
+};
 
-  return foodsRecomendation;
+const Overflow = (persentage: Model.Food) => {
+  const value = Object.values(persentage);
+  for (const v of value) {
+    if (v > 120) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const Underflow = (persentage: Model.Food) => {
+  const value = Object.values(persentage);
+  for (const v of value) {
+    if (v < 70) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const randomFoods = (array: FoodDB[]) => {
+  const newArr: FoodDB[] = [];
+  for (let i = 10; i > 0; i--) {
+    newArr.push(array[Math.floor(Math.random() * array.length)]);
+  }
+  return newArr;
 };
 
 const countDialyFood = (
-  childFoodDialy: Static.ChildDialyFood,
-  Food: Static.Food,
-): Static.ChildDialyFood => {
-  return {
-    fat: childFoodDialy.fat + Food.fat,
-    fibre: childFoodDialy.fibre + Food.fibre,
-    protein: childFoodDialy.protein + Food.protein,
-    water: childFoodDialy.water + Food.water,
-    energy: childFoodDialy.energy + Food.energy,
-    carbohydrate: childFoodDialy.carbohydrate + Food.carbohydrate,
-  };
+  childFoodDialy: Model.FoodAmount,
+  Food: Model.Food,
+): Model.Food => {
+  return Object.entries(Food).reduce((newFood, [key, value]) => {
+    newFood[key] =
+      childFoodDialy["FoodDB"][key] * childFoodDialy["amount"] + value;
+    return newFood;
+  }, Model.newFoodStats());
 };
 
 const countPercentage = (
-  childFoodDialy: Static.ChildDialyFood,
-  DialyPortion: Static.ChildDialyFood,
-) => {
-  return {
-    fatP: (childFoodDialy.fat / DialyPortion.fat) * 100,
-    fibreP: (childFoodDialy.fibre / DialyPortion.fibre) * 100,
-    proteinP: (childFoodDialy.protein / DialyPortion.protein) * 100,
-    waterP: (childFoodDialy.water / DialyPortion.water) * 100,
-    energyP: (childFoodDialy.energy / DialyPortion.energy) * 100,
-    carbohydrateP:
-      (childFoodDialy.carbohydrate / DialyPortion.carbohydrate) * 100,
-  };
+  childFoodDialy: Model.Food,
+  DialyPortion: Static.DailyFood,
+): Model.Food => {
+  return Object.entries(childFoodDialy).reduce((newFood, [key, value]) => {
+    newFood[key] = (value / DialyPortion[key]) * 100;
+    return newFood;
+  }, Model.newFoodStats());
 };
 
-const standartDeviationPersentage = (Persentage: Static.Persentage): number => {
-  return (
-    Math.sqrt(
-      Math.pow(Persentage.fatP - 100, 2) +
-        Math.pow(Persentage.fibreP - 100, 2) +
-        Math.pow(Persentage.proteinP - 100, 2) +
-        Math.pow(Persentage.waterP - 100, 2) +
-        Math.pow(Persentage.energyP - 100, 2) +
-        Math.pow(Persentage.carbohydrateP - 100, 2),
-    ) / 6
-  );
+const stdev = (Persentage: Model.Food): number => {
+  const value = Object.values(Persentage);
+  const variance =
+    value.reduce((acc, val) => acc + Math.pow(val - 100, 2), 0) / value.length;
+  return Math.sqrt(variance);
 };
 
 const idealConsumption = (
   Dialy: Static.DailyFood,
-  Persentage: Static.Persentage,
-): Static.IdealFoodConsumption => {
-  return {
-    fat: {
-      min: ((100 - Persentage.fatP - 10) * Dialy.fat) / 100,
-      max: ((100 - Persentage.fatP + 10) * Dialy.fat) / 100,
-    },
-    energy: {
-      min: ((100 - Persentage.energyP - 10) * Dialy.energy) / 100,
-      max: ((100 - Persentage.energyP + 10) * Dialy.energy) / 100,
-    },
-    water: {
-      min: ((100 - Persentage.waterP - 10) * Dialy.water) / 100,
-      max: ((100 - Persentage.waterP + 10) * Dialy.water) / 100,
-    },
-    carbohydrate: {
-      min: ((100 - Persentage.carbohydrateP - 20) * Dialy.carbohydrate) / 100,
-      max: ((100 - Persentage.carbohydrateP + 10) * Dialy.carbohydrate) / 100,
-    },
-    protein: {
-      min: ((100 - Persentage.proteinP - 10) * Dialy.protein) / 100,
-      max: ((100 - Persentage.proteinP + 10) * Dialy.protein) / 100,
-    },
-    fibre: {
-      min: ((100 - Persentage.fibreP - 10) * Dialy.fibre) / 100,
-      max: ((100 - Persentage.fibreP + 10) * Dialy.fibre) / 100,
-    },
-  };
+  Persentage: Model.Food,
+): Model.Food => {
+  return Object.entries(Persentage).reduce((ideal, [key, value]) => {
+    const maximum = ((100 - value) / 100) * Dialy[key] * 0.1;
+    ideal[key] = maximum;
+    return ideal;
+  }, Model.newFoodStats());
 };
-
-// const newFoodPercentage = (
-//   foods: Static.Food[],
-//   foodDialy: Static.ChildDialyFood,
-//   ideal: Static.DailyFood,
-// ) => {
-//   let standartDeviation = Number.MAX_VALUE;
-//   let Percentage = Static.newPercentage();
-//   let DialyFood = newChildDailyFoods();
-//   let food: Static.Food;
-
-//   foods.forEach((f) => {
-//     const newChildFoodDialy = countChildDialy(foodDialy, f);
-//     const newChildFoodPercentage = countPercentage(newChildFoodDialy, ideal);
-//     const newStandartDeviation = standartDeviationPersentage(
-//       newChildFoodPercentage,
-//     );
-//     if (newStandartDeviation < standartDeviation) {
-//       standartDeviation = newStandartDeviation;
-//       Percentage = newChildFoodPercentage;
-//       DialyFood = newChildFoodDialy;
-//       food = f;
-//     }
-//   });
-//   return {
-//     percentage: Percentage,
-//     dialyFood: DialyFood,
-//     food: food,
-//   };
-// };
-
-// export const foodRecommendation = async (childId: number) => {
-//   const foodsRecomendation: Static.Food[] = [];
-//   const childAge = await queryChildAge(childId);
-//   const childFoodsToday = await queryChildFoodToday(childId);
-//   let childFoodDialy = newChildDailyFoods();
-//   let childFoodPercentage = Static.newPercentage();
-//   const idealChildFoodDialy = Static.dailyFoods.find(
-//     (df) => childAge >= df.minAge && childAge <= df.maxAge,
-//   );
-//   childFoodsToday.forEach(async (cf) => {
-//     const foodInfo = await queryFoodDetailbyID(cf.foodId);
-//     childFoodDialy = countChildDialy(childFoodDialy, foodInfo);
-//   });
-//   childFoodPercentage = countPercentage(childFoodDialy, idealChildFoodDialy);
-//   const idealCons = idealConsumption(idealChildFoodDialy, childFoodPercentage);
-
-//   // fat
-//   if (childFoodPercentage.fatP <= 50) {
-//     const findFat = await queryFat(idealCons.fat.min, idealCons.fat.max);
-//     const { percentage, dialyFood, food } = newFoodPercentage(
-//       findFat,
-//       childFoodDialy,
-//       idealChildFoodDialy,
-//     );
-//     childFoodPercentage = percentage;
-//     childFoodDialy = dialyFood;
-//     foodsRecomendation.push(food);
-//   }
-
-//   // fiber
-//   if (childFoodPercentage.fibreP <= 50) {
-//     const findFibre = await queryFibre(
-//       idealCons.fibre.min,
-//       idealCons.fibre.max,
-//     );
-
-//     const { percentage, dialyFood, food } = newFoodPercentage(
-//       findFibre,
-//       childFoodDialy,
-//       idealChildFoodDialy,
-//     );
-
-//     childFoodPercentage = percentage;
-//     childFoodDialy = dialyFood;
-//     foodsRecomendation.push(food);
-//   }
-
-//   // protein
-
-//   if (childFoodPercentage.proteinP <= 50) {
-//     const findProtein = await queryProtein(
-//       idealCons.protein.min,
-//       idealCons.protein.max,
-//     );
-
-//     const { percentage, dialyFood, food } = newFoodPercentage(
-//       findProtein,
-//       childFoodDialy,
-//       idealChildFoodDialy,
-//     );
-
-//     childFoodPercentage = percentage;
-//     childFoodDialy = dialyFood;
-//     foodsRecomendation.push(food);
-//   }
-
-//   // carbohydrate
-
-//   if (childFoodPercentage.carbohydrateP <= 50) {
-//     const findCarbohydrate = await queryCarbohydrate(
-//       idealCons.carbohydrate.min,
-//       idealCons.carbohydrate.max,
-//     );
-
-//     const { percentage, dialyFood, food } = newFoodPercentage(
-//       findCarbohydrate,
-//       childFoodDialy,
-//       idealChildFoodDialy,
-//     );
-
-//     childFoodPercentage = percentage;
-//     childFoodDialy = dialyFood;
-//     foodsRecomendation.push(food);
-//   }
-
-//   // water
-
-//   if (childFoodPercentage.waterP <= 50) {
-//     const findWater = await queryWater(
-//       idealCons.water.min,
-//       idealCons.water.max,
-//     );
-
-//     const { percentage, dialyFood, food } = newFoodPercentage(
-//       findWater,
-//       childFoodDialy,
-//       idealChildFoodDialy,
-//     );
-//     childFoodPercentage = percentage;
-//     childFoodDialy = dialyFood;
-//     foodsRecomendation.push(food);
-//   }
-
-//   // energy
-
-//   if (childFoodPercentage.energyP <= 50) {
-//     const findEnergy = await queryEnergy(
-//       idealCons.energy.min,
-//       idealCons.energy.max,
-//     );
-//     const { percentage, dialyFood, food } = newFoodPercentage(
-//       findEnergy,
-//       childFoodDialy,
-//       idealChildFoodDialy,
-//     );
-
-//     childFoodPercentage = percentage;
-//     childFoodDialy = dialyFood;
-//     foodsRecomendation.push(food);
-//   }
-//   return foodsRecomendation;
-// };
