@@ -9,6 +9,8 @@ import parentRouter from "./router/ParentRouter";
 import foodRouter from "./router/FoodRouter";
 import intakeRouter from "./router/IntakeRouter";
 import childRouter from "./router/ChildRouter";
+import Logger from "@ptkdev/logger";
+const log = new Logger();
 
 const app: Express = express();
 const PORT = env.PORT || 80;
@@ -31,13 +33,9 @@ app.use((req, res, next) => {
   const path = req.path;
   const startTime = Date.now();
   res.on("finish", () => {
-    console.log({
-      method: req.method,
-      path: path,
-      ip: req.ip,
-      statusCode: res.statusCode,
-      latency: `${Date.now() - startTime}ms`,
-    });
+    log.info(
+      `method: ${req.method}, path: ${path}, ip: ${req.ip}, statusCode: ${res.statusCode}, latency: ${Date.now() - startTime}ms`,
+    );
   });
   next();
 });

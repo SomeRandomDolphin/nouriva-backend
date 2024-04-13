@@ -57,6 +57,7 @@
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
     "@prisma/client": "^5.1.1",
+    "@ptkdev/logger": "^1.8.0",
     "@types/bcrypt": "^5.0.2",
     "bcrypt": "^5.1.0",
     "dotenv": "^16.3.1",
