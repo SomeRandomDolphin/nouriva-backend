@@ -1,4 +1,3 @@
-import { newChildDailyFoods } from "../public/StaticData";
 import {
   queryFoodDetailbyID,
   queryFoodDetailAll,
@@ -9,6 +8,7 @@ import {
 } from "../repository/FoodRepository";
 
 import * as Static from "../public/StaticData";
+import { queryCheckChildParent } from "../repository/ChildRepository";
 
 export const retrieveFoodbyID = async (data: number) => {
   const Food = await queryFoodDetailbyID(data);
@@ -25,19 +25,25 @@ export const retrieveFoodWithFoodType = async (data: number) => {
   return FoodType;
 };
 
-export const foodsRecommendation = async (childId: number) => {
+export const foodsRecommendation = async (
+  parentId: number,
+  childId: number,
+) => {
+  await queryCheckChildParent(parentId, childId);
+
   const foodsRecomendation: Static.Food[] = [];
 
-  const ChildMealToday = await queryChildFoodToday(childId);
-  let childFoodToday = newChildDailyFoods();
+  const foodToday = await queryChildFoodToday(childId);
+  let childFoodToday = Static.newChildDailyFoods();
+
   const childAge = await queryChildAge(childId);
   const idealChildFoodDialy = Static.dailyFoods.find(
     (df) => childAge >= df.minAge && childAge <= df.maxAge,
   );
 
-  ChildMealToday.forEach(async (cf) => {
+  foodToday.forEach(async (cf) => {
     const food = await queryFoodDetailbyID(cf.foodId);
-    childFoodToday = countChildDialy(childFoodToday, food);
+    childFoodToday = countDialyFood(childFoodToday, food);
   });
 
   const childFoodPercentage = countPercentage(
@@ -45,7 +51,10 @@ export const foodsRecommendation = async (childId: number) => {
     idealChildFoodDialy,
   );
 
-  const idealCons = idealConsumption(idealChildFoodDialy, childFoodPercentage);
+  const idealFoodCons = idealConsumption(
+    idealChildFoodDialy,
+    childFoodPercentage,
+  );
 
   let standartDeviation = standartDeviationPersentage(childFoodPercentage);
 
@@ -53,10 +62,13 @@ export const foodsRecommendation = async (childId: number) => {
     return childFoodPercentage[a] - childFoodPercentage[b];
   });
 
-  const PosibleFood = await queryAllNeededFood(sortedKey, idealCons);
+  /*
+   * Get all posible food to increase the percentage
+   * */
+  const PosibleFood = await queryAllNeededFood(sortedKey, idealFoodCons);
 
   PosibleFood.forEach((pf) => {
-    const newChildFoodDialy = countChildDialy(childFoodToday, pf);
+    const newChildFoodDialy = countDialyFood(childFoodToday, pf);
     const newChildFoodPercentage = countPercentage(
       newChildFoodDialy,
       idealChildFoodDialy,
@@ -74,9 +86,7 @@ export const foodsRecommendation = async (childId: number) => {
   return foodsRecomendation;
 };
 
-//
-
-const countChildDialy = (
+const countDialyFood = (
   childFoodDialy: Static.ChildDialyFood,
   Food: Static.Food,
 ): Static.ChildDialyFood => {

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { responseData, responseError } from "../Utils/API-Response";
 import { StatusCodes } from "http-status-codes";
 import * as FoodService from "../service/FoodService";
+import { UserToken } from "../middleware/AuthMiddleware";
 
 export const retrieveFoodbyID = async (req: Request, res: Response) => {
   try {
@@ -29,5 +30,18 @@ export const retrieveFoodWithFoodType = async (req: Request, res: Response) => {
     responseData(res, StatusCodes.OK, "Food Retrieved", url);
   } catch (err) {
     responseError(res, err);
+  }
+};
+
+export const foodsRecommendation = async (req: Request, res: Response) => {
+  try {
+    const { id } = (req as UserToken).user;
+    const { child_id } = req.params;
+
+    const dataRec = await FoodService.foodsRecommendation(id, Number(child_id));
+
+    responseData(res, StatusCodes.OK, "Food Recommendation", dataRec);
+  } catch (error) {
+    responseError(res, error);
   }
 };
