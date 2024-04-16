@@ -60,10 +60,12 @@ export const retrieveChildFoodStatisic = async (
 
     const std = stdev(childFoodPercentage);
 
+    const score = (100 - std) / 100;
+
     Stats.push({
-      date: new Date(start).toLocaleDateString(),
+      date: new Date(start).toDateString(),
       ...childFoodPercentage,
-      score: (100 / (100 + std)) * 100,
+      score: score < 0 ? 0 : Number(score.toPrecision(2)),
     });
 
     start.setDate(start.getDate() + 1);
@@ -181,9 +183,12 @@ export const foodsRecommendation = async (
       amount: fl.amount,
     };
   });
+
+  const score = Number((((100 - std) / 100) * 100).toPrecision(4));
+
   return {
     percentage: finalPersentage,
-    score: (100 / (100 + std)) * 100,
+    score: score < 0 ? 0 : score,
     foodList: mapFood,
   };
 };
@@ -232,7 +237,7 @@ const countPercentage = (
   DialyPortion: Static.DailyFood,
 ): Model.Food => {
   return Object.entries(childFoodDialy).reduce((newFood, [key, value]) => {
-    newFood[key] = (value / DialyPortion[key]) * 100;
+    newFood[key] = Number(((value / DialyPortion[key]) * 100).toPrecision(4));
     return newFood;
   }, Model.newFoodStats());
 };
