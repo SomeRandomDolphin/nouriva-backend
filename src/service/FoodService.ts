@@ -2,10 +2,10 @@ import {
   queryFoodDetailbyID,
   queryFoodDetailAll,
   queryFoodWithFoodType,
-  queryChildAge,
   queryAllNeededFood,
   queryChildFoodByDay,
   queryBirtDate,
+  queryChildAge,
 } from "../repository/FoodRepository";
 import { Food as FoodDB } from "@prisma/client";
 import * as Static from "../public/StaticData";
@@ -35,11 +35,12 @@ export const retrieveChildFoodStatisic = async (
   while (start <= end) {
     // harus di check setiap iterasi karena bisa saja usia bulan berubah
     const { birthDate } = await queryBirtDate(childId);
+
     const childAge =
       (start.getTime() - birthDate.getTime()) / 1000 / 86400 / 30;
 
     const idealChildFoodDialy = Static.dailyFoods.find(
-      (df) => childAge >= df.minAge && childAge <= df.maxAge,
+      (df) => df.age == Number(childAge.toFixed(0)),
     );
 
     const foodDay = await queryChildFoodByDay(start, childId);
@@ -56,6 +57,7 @@ export const retrieveChildFoodStatisic = async (
     const childFoodPercentage = countPercentage(
       childFoodToday,
       idealChildFoodDialy,
+      true,
     );
 
     const std = stdev(childFoodPercentage);
@@ -91,8 +93,9 @@ export const foodsRecommendation = async (
 
   // cari ideal food dialy
   const childAge = await queryChildAge(childId);
+
   const idealChildFoodDialy = Static.dailyFoods.find(
-    (df) => childAge >= df.minAge && childAge <= df.maxAge,
+    (df) => df.age == Number(childAge.toFixed(0)),
   );
 
   // hitung makanan yang udah di konsumsi hari ini
@@ -111,6 +114,7 @@ export const foodsRecommendation = async (
   let childFoodPercentage = countPercentage(
     childFoodToday,
     idealChildFoodDialy,
+    true,
   );
 
   // cari ideal food consumption agar terpenuhi
@@ -148,6 +152,7 @@ export const foodsRecommendation = async (
         const newChildFoodPercentage = countPercentage(
           newChildFoodDialy,
           idealChildFoodDialy,
+          false,
         );
         const newStd = stdev(newChildFoodPercentage);
 
@@ -214,6 +219,7 @@ const Underflow = (persentage: Model.Food) => {
 };
 
 const randomFoods = (array: FoodDB[]) => {
+  console.log(array.length);
   const newArr: FoodDB[] = [];
   for (let i = 10; i > 0; i--) {
     newArr.push(array[Math.floor(Math.random() * array.length)]);
@@ -234,10 +240,15 @@ const countDialyFood = (
 
 const countPercentage = (
   childFoodDialy: Model.Food,
-  DialyPortion: Static.DailyFood,
+  DailyPortion: Static.DailyFood,
+  init: boolean,
 ): Model.Food => {
   return Object.entries(childFoodDialy).reduce((newFood, [key, value]) => {
-    newFood[key] = Number(((value / DialyPortion[key]) * 100).toPrecision(4));
+    if (DailyPortion[key] == 0) {
+      newFood[key] = init ? 100 : value * 100;
+      return newFood;
+    }
+    newFood[key] = Number(((value / DailyPortion[key]) * 100).toPrecision(4));
     return newFood;
   }, Model.newFoodStats());
 };
