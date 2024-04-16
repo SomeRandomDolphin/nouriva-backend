@@ -47,9 +47,8 @@ export const retrieveChildFoodStatisic = async (
     let childFoodToday = Model.newFoodStats();
 
     for (const ft of foodDay) {
-      const food = await queryFoodDetailbyID(ft.foodId);
       childFoodToday = countDialyFood(
-        { FoodDB: food, amount: ft.amount },
+        { FoodDB: ft.childFoodFromFood, amount: ft.amount },
         childFoodToday,
       );
     }
@@ -101,9 +100,8 @@ export const foodsRecommendation = async (
   // hitung makanan yang udah di konsumsi hari ini
   async function childFood() {
     for (const ft of foodToday) {
-      const food = await queryFoodDetailbyID(ft.foodId);
       childFoodToday = countDialyFood(
-        { FoodDB: food, amount: ft.amount },
+        { FoodDB: ft.childFoodFromFood, amount: ft.amount },
         childFoodToday,
       );
     }
@@ -117,20 +115,10 @@ export const foodsRecommendation = async (
     true,
   );
 
-  // cari ideal food consumption agar terpenuhi
-  const idealFoodCons = idealConsumption(
-    idealChildFoodDialy,
-    childFoodPercentage,
-  );
-
   // standart deviasi
   let std = stdev(childFoodPercentage);
 
-  // makanan yang mungkin dari db
-  let PosibleFoods = await queryAllNeededFood(idealFoodCons);
-  PosibleFoods = PosibleFoods.filter((value, index, self) => {
-    return self.findIndex((t) => t.id === value.id) === index;
-  });
+  const PosibleFoods = await queryAllNeededFood();
 
   let FoodList: Model.FoodAmount[] = [];
 
@@ -138,11 +126,12 @@ export const foodsRecommendation = async (
   let finalPersentage = childFoodPercentage;
 
   // algoritma yang akan meneukan rekomendasi makanan terbaik
-  for (let i = 0; i < 20000; i++) {
+  for (let i = 0; i < 10000; i++) {
     const TempFoodList: Model.FoodAmount[] = [];
     let tempStd = startStd;
     const RandomFood = randomFoods(PosibleFoods);
     let tempCFToday = childFoodToday;
+
     while (RandomFood.length != 0) {
       RandomFood.forEach((pf) => {
         const newChildFoodDialy = countDialyFood(
@@ -219,9 +208,8 @@ const Underflow = (persentage: Model.Food) => {
 };
 
 const randomFoods = (array: FoodDB[]) => {
-  console.log(array.length);
   const newArr: FoodDB[] = [];
-  for (let i = 10; i > 0; i--) {
+  for (let i = 10; i >= 0; i--) {
     newArr.push(array[Math.floor(Math.random() * array.length)]);
   }
   return newArr;
@@ -258,15 +246,4 @@ const stdev = (Persentage: Model.Food): number => {
   const variance =
     value.reduce((acc, val) => acc + Math.pow(val - 100, 2), 0) / value.length;
   return Math.sqrt(variance);
-};
-
-const idealConsumption = (
-  Dialy: Static.DailyFood,
-  Persentage: Model.Food,
-): Model.Food => {
-  return Object.entries(Persentage).reduce((ideal, [key, value]) => {
-    const maximum = ((100 - value) / 100) * Dialy[key] * 0.1;
-    ideal[key] = maximum;
-    return ideal;
-  }, Model.newFoodStats());
 };

@@ -1,7 +1,5 @@
-import { Food } from "@prisma/client";
 import db from "../config/connectDb";
 import { CustomError } from "../Utils/ErrorHandling";
-import * as Model from "../model/FoodModel";
 
 export const queryFoodDetailbyID = async (idInput: number) => {
   const data = await db.food.findUnique({
@@ -106,26 +104,14 @@ export const queryChildFoodByDay = async (date: Date, childId: number) => {
         lte: new Date(date.setHours(23, 59, 59, 999)),
       },
     },
+    include: {
+      childFoodFromFood: true,
+    },
   });
+
   return data;
 };
 
-export const queryAllNeededFood = async (ideal: Model.Food) => {
-  const data: Food[] = [];
-
-  const keys = Object.keys(ideal);
-
-  for (const key of keys) {
-    const find = await db.food.findMany({
-      where: {
-        [key]: {
-          lt: ideal[key].max,
-        },
-      },
-    });
-
-    data.push(...find);
-  }
-
-  return data;
+export const queryAllNeededFood = async () => {
+  return db.food.findMany();
 };
