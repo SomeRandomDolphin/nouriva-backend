@@ -26,14 +26,26 @@ export const createIntake = async (intake: IntakeRequest) => {
   }
 };
 
-export const queryIntakeChildId = async (idInput: number) => {
+export const queryIntakeChildId = async (
+  idInput: number,
+  start: Date,
+  end: Date,
+) => {
   const data = await db.childFood.findMany({
     where: {
       childId: idInput,
+      mealTime: {
+        gte: start,
+        lte: end,
+      },
+    },
+    orderBy: {
+      mealTime: "asc",
     },
   });
-  if (!data)
+  if (data.length === 0)
     throw new CustomError(StatusCodes.NOT_FOUND, "Child Food not found");
+
   return data;
 };
 

@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import Joi from "joi";
-import { IntakeRequest, UpdateIntake } from "../model/IntakeModel";
-import { intakeSchema, updateIntakeSchema } from "../Utils/Validation";
+import { IntakeRequest, IntakeTime, UpdateIntake } from "../model/IntakeModel";
+import {
+  intakeSchema,
+  statSchema,
+  updateIntakeSchema,
+} from "../Utils/Validation";
 import { responseData, responseError } from "../Utils/API-Response";
 import { UserToken } from "../middleware/AuthMiddleware";
 import * as IntakeService from "../service/IntakeService";
@@ -30,10 +34,19 @@ export const createIntake = async (req: Request, res: Response) => {
 };
 
 export const getIntakeByChild = async (req: Request, res: Response) => {
+  const { error, value }: { error: Joi.ValidationError; value: IntakeTime } =
+    statSchema.validate(req.query);
+
+  if (error) {
+    responseError(res, error);
+    return;
+  }
+
   try {
     const { id } = (req as UserToken).user;
     const child_id = Number(req.params.child_id);
-    const data = await IntakeService.retriveChildFood(child_id, id);
+
+    const data = await IntakeService.retriveChildFood(child_id, id, value);
 
     responseData(res, StatusCodes.OK, "Child Food Retrive Successfully", data);
   } catch (error) {
