@@ -7,11 +7,11 @@ import {
   updateParent,
 } from "../controller/ParentController";
 
-const userRouter = Router();
+const parentRouter = Router();
 
-userRouter.post("/register", registerParent);
-userRouter.get("/:parent_id", retrieveParent);
-userRouter.put("/update", userAuthMiddleware, updateParent);
-userRouter.delete("/delete", userAuthMiddleware, deleteParent);
+parentRouter.post("/register", registerParent);
+parentRouter.get("/:parent_id", retrieveParent);
+parentRouter.put("/update", userAuthMiddleware, updateParent);
+parentRouter.delete("/delete", userAuthMiddleware, deleteParent);
 
-export default userRouter;
+export default parentRouter;

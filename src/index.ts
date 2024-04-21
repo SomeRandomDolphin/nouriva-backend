@@ -43,9 +43,6 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRouter);
 app.use("/api/parents", parentRouter);
 app.use("/api/foods", foodRouter);
-app.use("/api/auth", authRouter);
-app.use("/api/parents", parentRouter);
-app.use("/api/foods", foodRouter);
 app.use("/api/intake", intakeRouter);
 app.use("/api/childs", childRouter);
 
