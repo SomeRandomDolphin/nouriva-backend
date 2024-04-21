@@ -1,40 +1,42 @@
 import { CustomError } from "../Utils/ErrorHandling";
 import { RequestChild } from "../model/ChildModel";
-import {
-  createChildRepo,
-  editChildRepo,
-  queryChildsByParentUsername,
-  removeChildRepo,
-} from "../repository/ChildRepository";
+import { queryParentById } from "../repository/AuthRepository";
+import * as ChildRepo from "../repository/ChildRepository";
 
-export const retriveParentChilds = async (parentUsername: string) => {
-  const data = await queryChildsByParentUsername(parentUsername);
+export const retriveParentChilds = async (id: number) => {
+  const parent = await queryParentById(id);
+  if (parent.deletedAt) throw new CustomError(404, "Parent not found");
+
+  const data = await ChildRepo.queryChildsByParentId(id);
   return data.filter((child) => child.deletedAt === null);
 };
 
-export const retriveChildDetail = async (
-  parentUsername: string,
-  childId: number,
-) => {
-  const data = await queryChildsByParentUsername(parentUsername);
+export const retriveChildDetail = async (id: number, childId: number) => {
+  const parent = await queryParentById(id);
+  if (parent.deletedAt) throw new CustomError(404, "Parent not found");
+
+  const data = await ChildRepo.queryChildsByParentId(id);
   const child = data.find((child) => child.id === childId && !child.deletedAt);
   if (!child) throw new CustomError(404, "Child not found");
   return child;
 };
 
-export const createChild = async (
-  parentUsername: string,
-  data: RequestChild,
-) => {
-  return await createChildRepo(parentUsername, data);
+export const createChild = async (id: number, data: RequestChild) => {
+  const parent = await queryParentById(id);
+  if (parent.deletedAt) throw new CustomError(404, "Parent not found");
+
+  return await ChildRepo.createChildRepo(id, data);
 };
 
 export const editChildService = async (
-  parentUsername: string,
+  id: number,
   childId: number,
   data: RequestChild,
 ) => {
-  const childs = await queryChildsByParentUsername(parentUsername);
+  const parent = await queryParentById(id);
+  if (parent.deletedAt) throw new CustomError(404, "Parent not found");
+
+  const childs = await ChildRepo.queryChildsByParentId(id);
 
   const child = childs.find(
     (child) => child.id === childId && !child.deletedAt,
@@ -42,11 +44,14 @@ export const editChildService = async (
 
   if (!child) throw new CustomError(404, "Child not found");
 
-  return await editChildRepo(childId, data);
+  return await ChildRepo.editChildRepo(childId, data);
 };
 
-export const deleteChild = async (parentUsername: string, childId: number) => {
-  const childs = await queryChildsByParentUsername(parentUsername);
+export const deleteChild = async (id: number, childId: number) => {
+  const parent = await queryParentById(id);
+  if (parent.deletedAt) throw new CustomError(404, "Parent not found");
+
+  const childs = await ChildRepo.queryChildsByParentId(id);
 
   const child = childs.find((child) => child.id === childId);
 
@@ -54,5 +59,5 @@ export const deleteChild = async (parentUsername: string, childId: number) => {
 
   if (child.deletedAt) throw new CustomError(404, "Child already deleted");
 
-  return await removeChildRepo(childId);
+  return await ChildRepo.removeChildRepo(childId);
 };

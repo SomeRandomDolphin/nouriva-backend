@@ -3,24 +3,25 @@ import { CustomError } from "../Utils/ErrorHandling";
 import { LoginRequest } from "../model/AuthModel";
 import {
   queryParentByEmail,
-  queryParentByUsername,
+  queryParentById,
 } from "../repository/AuthRepository";
 import { generateAccessToken } from "../Utils/JWT-Token";
 import bcrypt from "bcrypt";
 
-export const loginUser = async (data: LoginRequest) => {
-  const user = await queryParentByEmail(data.email);
-  if (!user) {
+export const loginParent = async (data: LoginRequest) => {
+  const parent = await queryParentByEmail(data.email);
+  if (!parent) {
     throw new CustomError(StatusCodes.BAD_REQUEST, "Invalid Credential");
   }
 
-  const isPasswordMatch = bcrypt.compareSync(data.password, user.password);
+  const isPasswordMatch = bcrypt.compareSync(data.password, parent.password);
   if (!isPasswordMatch) {
     throw new CustomError(StatusCodes.BAD_REQUEST, "Invalid Credential");
   }
 
   const payload = {
-    username: user.username,
+    id: parent.id,
+    email: parent.email,
   };
 
   const accessToken = generateAccessToken(payload);
@@ -28,14 +29,14 @@ export const loginUser = async (data: LoginRequest) => {
   return { accessToken };
 };
 
-export const userProfile = async (userUsername: string) => {
-  const user = await queryParentByUsername(userUsername);
+export const ParentProfile = async (idParent: number) => {
+  const parent = await queryParentById(idParent);
 
-  if (!user) {
-    throw new CustomError(StatusCodes.NOT_FOUND, "Invalid User");
+  if (!parent) {
+    throw new CustomError(StatusCodes.NOT_FOUND, "Invalid Parent");
   }
 
-  delete user.password;
+  delete parent.password;
 
-  return user;
+  return parent;
 };

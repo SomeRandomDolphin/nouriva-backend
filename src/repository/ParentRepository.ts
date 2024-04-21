@@ -10,7 +10,6 @@ export const createParent = async (data: ParentRequest) => {
     const user = await db.parent.create({
       data: {
         name: data.name,
-        username: data.username,
         phoneNumber: data.phoneNumber,
         email: data.email,
         password: bcrypt.hashSync(data.password, env.ROUNDS_SALT),
@@ -19,7 +18,6 @@ export const createParent = async (data: ParentRequest) => {
       select: {
         id: true,
         name: true,
-        username: true,
         email: true,
         reminder: true,
         createdAt: true,
@@ -32,7 +30,7 @@ export const createParent = async (data: ParentRequest) => {
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code == "P2002") {
-        throw new CustomError(400, "Email Or Username already exist");
+        throw new CustomError(400, "Email already exist");
       }
     }
     throw error;
@@ -47,7 +45,6 @@ export const queryParentDetailbyID = async (idInput: number) => {
     select: {
       id: true,
       name: true,
-      username: true,
       email: true,
       phoneNumber: true,
       reminder: true,
@@ -60,20 +57,12 @@ export const queryParentDetailbyID = async (idInput: number) => {
   return data;
 };
 
-export const queryParentDetailbyUsername = async (usernameInput: string) => {
-  const data = await db.parent.findFirst({
+export const queryParentDeletedAt = async (idInput: number) => {
+  const data = await db.parent.findUnique({
     where: {
-      username: usernameInput,
+      id: idInput,
     },
     select: {
-      id: true,
-      name: true,
-      username: true,
-      email: true,
-      phoneNumber: true,
-      reminder: true,
-      createdAt: true,
-      updatedAt: true,
       deletedAt: true,
     },
   });
@@ -108,10 +97,10 @@ export const editParent = async (parentId: number, data: ParentRequest) => {
     const parent = await db.parent.update({
       where: {
         id: parentId,
+        deletedAt: null,
       },
       data: {
         name: data.name,
-        username: data.username,
         email: data.email,
         reminder: data.reminder,
         phoneNumber: data.phoneNumber,
@@ -120,12 +109,15 @@ export const editParent = async (parentId: number, data: ParentRequest) => {
           : undefined,
       },
     });
-    if (!parent) throw new CustomError(400, "Invalid Data");
+
+    delete parent.password;
     return parent;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code == "P2002") {
-        throw new CustomError(400, "Email Or Username already exist");
+        throw new CustomError(400, "Email already exist");
+      } else if (error.code == "P2025") {
+        throw new CustomError(404, "Parent not found");
       }
     }
     throw error;
@@ -143,7 +135,6 @@ export const removeParent = async (parentId: number) => {
     select: {
       id: true,
       name: true,
-      username: true,
       email: true,
       createdAt: true,
       updatedAt: true,

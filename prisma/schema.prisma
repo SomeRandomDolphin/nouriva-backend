@@ -10,7 +10,6 @@ datasource db {
 model Parent {
   id          Int       @id @default(autoincrement())
   email       String    @unique @map("email")
-  username    String    @unique @map("username")
   name        String    @map("name")
   phoneNumber String    @map("phone_number")
   password    String    @map("password")
