@@ -9,6 +9,8 @@ import parentRouter from "./router/ParentRouter";
 import foodRouter from "./router/FoodRouter";
 import intakeRouter from "./router/IntakeRouter";
 import childRouter from "./router/ChildRouter";
+import Logger from "@ptkdev/logger";
+const log = new Logger();
 
 const app: Express = express();
 const PORT = env.PORT || 80;
@@ -16,22 +18,6 @@ const PORT = env.PORT || 80;
 app.use(cors());
 app.use(express.json());
 app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
-
-// logging middleware
-app.use((req, res, next) => {
-  const path = req.path;
-  const startTime = Date.now();
-  res.on("finish", () => {
-    console.log({
-      method: req.method,
-      path: path,
-      ip: req.ip,
-      statusCode: res.statusCode,
-      latency: `${Date.now() - startTime}ms`,
-    });
-  });
-  next();
-});
 
 // handling invalid JSON body
 app.use((err, req: Request, res: Response, next: NextFunction) => {
@@ -42,6 +28,21 @@ app.use((err, req: Request, res: Response, next: NextFunction) => {
   next(err);
 });
 
+// logging middleware
+app.use((req, res, next) => {
+  const path = req.path;
+  const startTime = Date.now();
+  res.on("finish", () => {
+    log.info(
+      `method: ${req.method}, path: ${path}, ip: ${req.ip}, statusCode: ${res.statusCode}, latency: ${Date.now() - startTime}ms`,
+    );
+  });
+  next();
+});
+
+app.use("/api/auth", authRouter);
+app.use("/api/parents", parentRouter);
+app.use("/api/foods", foodRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/parents", parentRouter);
 app.use("/api/foods", foodRouter);

@@ -64,7 +64,7 @@ async function seedParentChild() {
       await db.childFood.create({
         data: {
           childId: id,
-          amount: randomInt(10, 100),
+          amount: randomInt(1, 10),
           foodId: random_food_id,
           mealTime: new Date(),
         },

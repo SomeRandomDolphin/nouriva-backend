@@ -1,4 +1,9 @@
-import { IntakeRequest, UpdateIntake } from "../model/IntakeModel";
+import {
+  IntakeRequest,
+  IntakeRetrive,
+  IntakeTime,
+  UpdateIntake,
+} from "../model/IntakeModel";
 import * as IntakeRepo from "../repository/IntakeRepository";
 
 export const createIntake = async (parentid: number, intake: IntakeRequest) => {
@@ -12,13 +17,38 @@ export const createIntake = async (parentid: number, intake: IntakeRequest) => {
   return data;
 };
 
-export const retriveChildFood = async (child_id: number, parentid: number) => {
+export const retriveChildFood = async (
+  child_id: number,
+  parentid: number,
+  dates: IntakeTime,
+) => {
   /*
    *
    * validasi bahwa parent yang retrive data adalah parent yang memiliki child tersebut
    */
   await IntakeRepo.childIntakeValidation(child_id, parentid);
-  return await IntakeRepo.queryIntakeChildId(child_id);
+
+  const start = new Date(dates.start);
+  const end = new Date(new Date(dates.end).setHours(23, 59, 999));
+
+  const child_food = await IntakeRepo.queryIntakeChildId(child_id, start, end);
+
+  const data = [];
+
+  child_food.forEach((ch) => {
+    const date = ch.mealTime.toDateString();
+    data[date] = data[date] || [];
+    data[date].push(ch);
+  });
+  const response: IntakeRetrive[] = [];
+  Object.keys(data).forEach((d) => {
+    response.push({
+      date: d,
+      mealList: data[d],
+    });
+  });
+
+  return response;
 };
 
 export const updateIntake = async (

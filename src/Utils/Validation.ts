@@ -31,3 +31,8 @@ export const childSchema = Joi.object({
   height: Joi.number().required(),
   weight: Joi.number().required(),
 });
+
+export const statSchema = Joi.object({
+  start: Joi.date().required(),
+  end: Joi.date().required(),
+});

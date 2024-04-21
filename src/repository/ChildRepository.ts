@@ -24,6 +24,21 @@ export const queryChildsByParentId = async (id: number) => {
   return data;
 };
 
+export const queryCheckChildParent = async (
+  parent_id: number,
+  childId: number,
+) => {
+  const data = await db.child.findFirst({
+    where: {
+      parentId: parent_id,
+      id: childId,
+    },
+  });
+
+  if (!data) throw new CustomError(404, "Child not found");
+  return data;
+};
+
 export const queryChildDetailById = async (childId: number) => {
   const data = db.child.findUnique({
     where: {
