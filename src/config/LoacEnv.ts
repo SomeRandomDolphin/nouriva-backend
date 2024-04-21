@@ -11,7 +11,7 @@ const env = cleanEnv(
     PORT: num(),
     SECRET_ACCESS_TOKEN: str(),
     ROUNDS_SALT: num(),
-    HASH_SALT: str(),
+    // HASH_SALT: str(),
   },
   {
     reporter: ({ errors, env }) => {
@@ -29,7 +29,7 @@ const env = cleanEnv(
         process.exit(1);
       }
     },
-  },
+  }
 );
 
 export default env;

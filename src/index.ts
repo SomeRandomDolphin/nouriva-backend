@@ -6,6 +6,7 @@ import path from "path";
 
 import authRouter from "./router/AuthRouter";
 import parentRouter from "./router/ParentRouter";
+import foodRouter from "./router/FoodRouter";
 import intakeRouter from "./router/IntakeRouter";
 import childRouter from "./router/ChildRouter";
 
@@ -43,6 +44,7 @@ app.use((err, req: Request, res: Response, next: NextFunction) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/parents", parentRouter);
+app.use("/api/foods", foodRouter);
 app.use("/api/intake", intakeRouter);
 app.use("/api/childs", childRouter);
 
