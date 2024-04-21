@@ -73,19 +73,23 @@ async function seedParentChild() {
   });
 }
 
-async function seedFood() {
-  foodTypes.forEach(async (ft) => {
-    await db.foodType.create({
-      data: {
-        name: ft.name,
-      },
+async function seedFoodType() {
+  return Promise.all(foodTypes.map(async (ft) => {
+    await db.foodType.create({ 
+      data: { 
+        id: ft.id, 
+        name: ft.name 
+      } 
     });
     console.log(`success insert food type ${ft.name}`);
-  });
+  }));
+}
 
-  foodData.forEach(async (f) => {
+async function seedFood() {
+  return Promise.all(foodData.map(async (f) => {
     await db.food.create({
       data: {
+        id: f.id,
         name: f.name,
         water: f.water,
         energy: f.energy,
@@ -97,13 +101,14 @@ async function seedFood() {
       },
     });
     console.log(`success insert food ${f.name}`);
-  });
+  }));
 }
 
 async function main() {
   try {
-    seedParentChild();
-    seedFood();
+    await Promise.all([seedFoodType()]);
+    await Promise.all([seedFood()]);
+    await Promise.all([seedParentChild()]);
   } catch (err) {
     console.log(err);
     process.exit(1);
