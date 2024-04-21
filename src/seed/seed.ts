@@ -4,7 +4,6 @@ import child from "./ChildSeed";
 import { parents } from "./ParentSeed";
 import { foodData } from "./FoodSeed";
 import { foodTypes } from "./FoodTypeSeed";
-import { dailyFoods } from "./DailyFoodSeed";
 
 async function getAllFoodId() {
   return db.food.findMany({
@@ -101,30 +100,10 @@ async function seedFood() {
   });
 }
 
-async function seedDailyFood() {
-  dailyFoods.forEach(async (df) => {
-    await db.dailyFood.create({
-      data: {
-        water: df.water,
-        energy: df.energy,
-        carbohydrate: df.carbohydrate,
-        protein: df.protein,
-        fat: df.fat,
-        fibre: df.fibre,
-        minAge: df.minAge,
-        maxAge: df.maxAge,
-      },
-    });
-    console.log(`success insert daily food ${df.id}`);
-  });
-}
-
 async function main() {
   try {
-    // seedUsers();
-    seedFood();
-    seedDailyFood();
     seedParentChild();
+    seedFood();
   } catch (err) {
     console.log(err);
     process.exit(1);

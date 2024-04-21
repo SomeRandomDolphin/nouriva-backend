@@ -87,17 +87,3 @@ model ChildFood {
 
   @@map("ChildFoods")
 }
-
-model DailyFood {
-  id           Int @id @default(autoincrement())
-  water        Int
-  energy       Int
-  carbohydrate Int
-  protein      Int
-  fat          Int
-  fibre        Int
-  minAge       Int @map("min_age")
-  maxAge       Int @map("max_age")
-
-  @@map("DailyFoods")
-}
