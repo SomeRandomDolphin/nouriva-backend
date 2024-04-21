@@ -17,8 +17,9 @@ export const createParent = async (data: ParentRequest) => {
       },
       select: {
         id: true,
-        name: true,
         email: true,
+        name: true,
+        phoneNumber: true,
         reminder: true,
         createdAt: true,
         updatedAt: true,
@@ -44,8 +45,8 @@ export const queryParentDetailbyID = async (idInput: number) => {
     },
     select: {
       id: true,
-      name: true,
       email: true,
+      name: true,
       phoneNumber: true,
       reminder: true,
       createdAt: true,
@@ -77,8 +78,8 @@ export const queryParentDetailbyEmail = async (emailInput: string) => {
     },
     select: {
       id: true,
-      name: true,
       email: true,
+      name: true,
       phoneNumber: true,
       reminder: true,
       createdAt: true,
@@ -134,8 +135,10 @@ export const removeParent = async (parentId: number) => {
     },
     select: {
       id: true,
-      name: true,
       email: true,
+      name: true,
+      phoneNumber: true,
+      reminder: true,
       createdAt: true,
       updatedAt: true,
       deletedAt: true,
