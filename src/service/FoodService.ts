@@ -6,6 +6,7 @@ import {
   queryChildFoodByDay,
   queryBirtDate,
   queryChildAge,
+  queryAllFoodCategory,
 } from "../repository/FoodRepository";
 import { Food as FoodDB } from "@prisma/client";
 import * as Static from "../public/StaticData";
@@ -20,6 +21,12 @@ export const retrieveFoodbyID = async (data: number) => {
 export const retrieveFoodAll = async () => {
   const Food = await queryFoodDetailAll();
   return Food;
+};
+
+export const retriveFoodCategory = async () => {
+  console.log("Masuk king");
+  const FoodCategory = await queryAllFoodCategory();
+  return FoodCategory;
 };
 
 export const retrieveChildFoodStatisic = async (

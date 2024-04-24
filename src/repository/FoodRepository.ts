@@ -22,6 +22,12 @@ export const queryFoodDetailbyID = async (idInput: number) => {
   return data;
 };
 
+export const queryAllFoodCategory = async () => {
+  const data = await db.foodType.findMany();
+  if (data.length === 0) throw new CustomError(404, "Food Type not found");
+  return data;
+};
+
 export const queryFoodDetailAll = async () => {
   const data = await db.food.findMany();
   if (!data) throw new CustomError(404, "Food not found");

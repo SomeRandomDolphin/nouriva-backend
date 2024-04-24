@@ -46,7 +46,7 @@ app.use("/api/foods", foodRouter);
 app.use("/api/intake", intakeRouter);
 app.use("/api/childs", childRouter);
 
-app.get("/api", (_: Request, res: Response) => {
+app.get("/", (_: Request, res: Response) => {
   res.send("Nouriva API!");
 });
 
