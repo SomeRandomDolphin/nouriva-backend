@@ -28,7 +28,6 @@ export const retrieveFoodAll = async (req: Request, res: Response) => {
 
 export const retriveFoodCategory = async (req: Request, res: Response) => {
   try {
-    console.log("apa ini king");
     const data = await FoodService.retriveFoodCategory();
     responseData(res, StatusCodes.OK, "Food Category Retrieved", data);
   } catch (err) {
