@@ -39,12 +39,6 @@ app.use((req, res, next) => {
   });
   next();
 });
-app.get("/", (req, res) => {
-  res.json({
-    message: "api is up and running",
-    success: true,
-  });
-});
 
 app.use("/api/auth", authRouter);
 app.use("/api/parents", parentRouter);
@@ -52,7 +46,7 @@ app.use("/api/foods", foodRouter);
 app.use("/api/intake", intakeRouter);
 app.use("/api/childs", childRouter);
 
-app.get("/api", (_: Request, res: Response) => {
+app.get("/", (_: Request, res: Response) => {
   res.send("Nouriva API!");
 });
 
