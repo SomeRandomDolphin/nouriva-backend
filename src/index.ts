@@ -39,6 +39,12 @@ app.use((req, res, next) => {
   });
   next();
 });
+app.get("/", (req, res) => {
+  res.json({
+    message: "api is up and running",
+    success: true,
+  });
+});
 
 app.use("/api/auth", authRouter);
 app.use("/api/parents", parentRouter);
