@@ -13,7 +13,7 @@ const foodRouter = Router();
 
 foodRouter.get("/", retrieveFoodAll);
 foodRouter.get("/categories", retriveFoodCategory);
-foodRouter.get("/:food_id", retrieveFoodbyID);
+foodRouter.get("/detail/:food_id", retrieveFoodbyID);
 foodRouter.get("/category/:food_type_id", retrieveFoodWithFoodType);
 foodRouter.get(
   "/recommendation/:child_id",
